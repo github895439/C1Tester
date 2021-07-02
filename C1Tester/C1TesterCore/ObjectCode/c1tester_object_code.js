@@ -1,6 +1,7 @@
 ﻿//この行は処理に必要
 //C1Tester no trace start
 //  ブロックコメントはスクリプトによって置換される。
+const c1TesterPath = require('path');
 const c1TesterFs = require("fs");
 const c1TesterParse = require('csv-parse/lib/sync')
 const c1TesterStringify = require('csv-stringify/lib/sync')
@@ -42,7 +43,7 @@ class C1Tester
         Error.prepareStackTrace = prepareStackTraceForC1Tester;
         this.stack;
         Error.prepareStackTrace = backup;
-        let currentFolder = path.dirname(process.argv[2]);
+        let currentFolder = c1TesterPath.dirname(process.argv[1]);
         this.passFile = "/* replace_pass_filename_format */";
         this.passFile = this.passFile.replace("\{0\}", "/* replace_product */");
         this.passFile = this.passFile.replace("\{1\}", this.filename);
@@ -65,15 +66,12 @@ class C1Tester
         if (c1TesterFs.existsSync(this.reportFile))
         {
             let content = c1TesterFs.readFileSync(this.reportFile, "utf-8");
-            this.csv = c1TesterParse(content,
-                {
-                    columns: ["traceId", "report", "timestamp"]
-                });
+            this.csv = c1TesterParse(content, {columns: true});
 
             //処理方法を向上するためのハッシュテーブルを作成するループ
             for (let index = 0; index < this.csv.length; index++)
             {
-                this.reportHash.set(this.csv[index].traceId, index);
+                this.reportHash.set(this.csv[index].trace_id, index);
             }
 
             try
@@ -83,7 +81,7 @@ class C1Tester
             }
             catch (error)
             {
-                //nop
+                //保留
             }
 
             this.enabledReport = true;
@@ -107,8 +105,8 @@ class C1Tester
             this.stack;
             Error.prepareStackTrace = backup;
             let tmpDate = new Date();
-            let content = this.filename + ":" + this.lineNumber + "(" + this.functionName + ") " + tmpDate.toLocaleString() + "\n";
-            c1TesterFs.writeFile(this.passFile, traceId + "," + content, { flag: "a+" }, (err) => { });
+            let content = this.filename + ":" + this.lineNumber + "(" + this.functionName + ") " + tmpDate.toLocaleString();
+            c1TesterFs.writeFile(this.passFile, traceId + "," + content + "\n", { flag: "a+" }, (err) => { });
             this.pass.set(traceId, true);
 
             //報告するか
