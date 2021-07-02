@@ -42,12 +42,15 @@ class C1Tester
         Error.prepareStackTrace = prepareStackTraceForC1Tester;
         this.stack;
         Error.prepareStackTrace = backup;
+        let currentFolder = path.dirname(process.argv[2]);
         this.passFile = "/* replace_pass_filename_format */";
         this.passFile = this.passFile.replace("\{0\}", "/* replace_product */");
         this.passFile = this.passFile.replace("\{1\}", this.filename);
+        this.passFile = currentFolder + "/" + this.passFile;
         this.reportFile = "/* replace_report_filename_format */";
         this.reportFile = this.reportFile.replace("\{0\}", "/* replace_product */");
         this.reportFile = this.reportFile.replace("\{1\}", this.filename);
+        this.reportFile = currentFolder + "/" + this.reportFile;
 
         try
         {
