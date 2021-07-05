@@ -43,15 +43,16 @@ class C1Tester
         Error.prepareStackTrace = prepareStackTraceForC1Tester;
         this.stack;
         Error.prepareStackTrace = backup;
-        let currentFolder = c1TesterPath.dirname(process.argv[1]);
+        let selfFolder = c1TesterPath.dirname(process.argv[1]);
         this.passFile = "/* replace_pass_filename_format */";
         this.passFile = this.passFile.replace("\{0\}", "/* replace_product */");
         this.passFile = this.passFile.replace("\{1\}", this.filename);
-        this.passFile = currentFolder + "/" + this.passFile;
+        this.passFile = selfFolder + "/" + this.passFile;
         this.reportFile = "/* replace_report_filename_format */";
         this.reportFile = this.reportFile.replace("\{0\}", "/* replace_product */");
         this.reportFile = this.reportFile.replace("\{1\}", this.filename);
-        this.reportFile = currentFolder + "/" + this.reportFile;
+        let reportFileBackup = selfFolder + "/_" + this.reportFile;
+        this.reportFile = selfFolder + "/" + this.reportFile;
 
         try
         {
@@ -76,14 +77,14 @@ class C1Tester
 
             try
             {
-                c1TesterFs.unlinkSync("_" + this.reportFile);
-                c1TesterFs.renameSync(this.reportFile, "_" + this.reportFile);
+                c1TesterFs.unlinkSync(reportFileBackup);
             }
             catch (error)
             {
                 //保留
             }
 
+            c1TesterFs.renameSync(this.reportFile, reportFileBackup);
             this.enabledReport = true;
         }
     }
@@ -106,7 +107,7 @@ class C1Tester
             Error.prepareStackTrace = backup;
             let tmpDate = new Date();
             let content = this.filename + ":" + this.lineNumber + "(" + this.functionName + ") " + tmpDate.toLocaleString();
-            c1TesterFs.writeFile(this.passFile, traceId + "," + content + "\n", { flag: "a+" }, (err) => { });
+            c1TesterFs.writeFileSync(this.passFile, traceId + "," + content + "\n", { flag: "a+" });
             this.pass.set(traceId, true);
 
             //報告するか
@@ -121,11 +122,11 @@ class C1Tester
                     if (this.csv[index].report == "-")
                     {
                         this.csv[index].report = "P";
-                        this.csv[index].report = content;
+                        this.csv[index].timestamp = content;
                     }
 
                     let contentCsv = c1TesterStringify(this.csv, { quoted: true, header: true });
-                    c1TesterFs.writeFile(this.reportFile, contentCsv, { flag: "w" }, (err) => { });
+                    c1TesterFs.writeFileSync(this.reportFile, contentCsv, { flag: "w" });
                 }
             }
         }

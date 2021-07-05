@@ -22,7 +22,8 @@ class c1tester
         $this.h_report_hash = @{}
         $stack = Get-PSCallStack
         $selffilename = Split-Path $stack[1].ScriptName -Leaf
-        $this.h_pass_file = '<# replace_pass_filename_format #>' -f '<# replace_product #>', $selffilename
+        $self_folder = Split-Path $stack[1].ScriptName -Parent
+        $this.h_pass_file = $self_folder + '\\<# replace_pass_filename_format #>' -f '<# replace_product #>', $selffilename
 
         #　通過ファイルが有るか
         if (Test-Path $this.h_pass_file)
@@ -30,7 +31,8 @@ class c1tester
             Remove-Item $this.h_pass_file
         }
 
-        $this.h_report_file = '<# replace_report_filename_format #>' -f '<# replace_product #>', $selffilename
+        $report_file_backup = $self_folder + '\\_<# replace_report_filename_format #>' -f '<# replace_product #>', $selffilename
+        $this.h_report_file = $self_folder + '\\<# replace_report_filename_format #>' -f '<# replace_product #>', $selffilename
         $this.h_enabled_report = $false
 
         # 報告ファイルが有るか
@@ -45,12 +47,12 @@ class c1tester
             }
 
             # 報告ファイルのバックアップが有るか
-            if (Test-Path ('_' + $this.h_report_file))
+            if (Test-Path $report_file_backup)
             {
-                Remove-Item ('_' + $this.h_report_file)
+                Remove-Item $report_file_backup
             }
 
-            Rename-Item $this.h_report_file ('_' + $this.h_report_file)
+            Rename-Item $this.h_report_file $report_file_backup
             $this.h_enabled_report = $true
         }
     }

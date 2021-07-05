@@ -128,37 +128,23 @@ function for_ps1($work)
             }
 
             Remove-Item $source_path
-            $source_new[0] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
-            $source_new[1] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
-            $done = $false
+            $object_path = (Convert-Path .) + '\ObjectCode\' + $c__extension[$extension]['object_code']
+            $object_code = Get-Content $object_path
 
-            # オブジェクトコード追加位置探索ループ
-            for ($i = 2; $i -lt $source_new.Count - 1; $i++)
+            # オブジェクトコード追加ループ
+            for ($i = 0; $i -lt $object_code.Count; $i++)
             {
-                $source_new[$i] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
-                $line1 = $source_new[$i + 0]
-                $line2 = $source_new[$i + 1]
-
-                # 追加場所、かつ、未追加か
-                if (($line1 -match '^\)') -and (-not $done))
-                {
-                    $object_path = (Convert-Path .) + '\ObjectCode\' + $c__extension[$extension]['object_code']
-                    $object_code = Get-Content $object_path
-                    
-                    # オブジェクトコード追加ループ
-                    for ($j = 0; $j -lt $object_code.Count; $j++)
-                    {
-                        $tmp = $object_code[$j] -replace '<# replace_product #>', $c__setting['product']
-                        $tmp = $tmp -replace '<# replace_pass_filename_format #>', $c__setting['pass_filename_format']
-                        $tmp = $tmp -replace '<# replace_report_filename_format #>', $c__setting['report_filename_format']
-                        $tmp | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
-                    }
-
-                    $done = $true
-                }
+                $tmp = $object_code[$i] -replace '<# replace_product #>', $c__setting['product']
+                $tmp = $tmp -replace '<# replace_pass_filename_format #>', $c__setting['pass_filename_format']
+                $tmp = $tmp -replace '<# replace_report_filename_format #>', $c__setting['report_filename_format']
+                $tmp | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
             }
 
-            $source_new[$i] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
+            # 追加前コード追加ループ
+            for ($i = 0; $i -lt $source_new.Count; $i++)
+            {
+                $source_new[$i] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
+            }
 
             break
         }
