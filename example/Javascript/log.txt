@@ -1,0 +1,399 @@
+﻿
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & where node
+続行するには何かキーを押してください . . .
+D:\TOOL\node-v10.16.0-win-x64\node.exe
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir
+続行するには何かキーを押してください . . .
+ ドライブ D のボリューム ラベルがありません。
+ ボリューム シリアル番号は 5E5B-9C13 です
+
+ D:\TOOL\C1Tester-main\C1Tester\C1TesterCore のディレクトリ
+
+2021/07/06  19:31    <DIR>          .
+2021/07/06  19:31    <DIR>          ..
+2021/07/06  19:28             1,901 C1TesterCore.pssproj
+2021/07/06  19:46            17,026 c1tester_add_trace.ps1
+2021/07/06  19:31    <DIR>          ObjectCode
+               2 個のファイル              18,927 バイト
+               3 個のディレクトリ  152,137,547,776 バイトの空き領域
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\Javascript
+続行するには何かキーを押してください . . .
+ ドライブ D のボリューム ラベルがありません。
+ ボリューム シリアル番号は 5E5B-9C13 です
+
+ D:\TOOL\C1Tester-main\example\Javascript のディレクトリ
+
+2021/07/06  19:48    <DIR>          .
+2021/07/06  19:48    <DIR>          ..
+2021/07/06  19:28               808 example.js
+               1 個のファイル                 808 バイト
+               2 個のディレクトリ  152,136,761,344 バイトの空き領域
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\example.js
+続行するには何かキーを押してください . . .
+function f1(params)
+{
+    for (let index = 0; index <= params; index++)
+    {
+        if (index % 2 == 0)
+        {
+            console.log(index.toString() + " is even.");
+        }
+        else
+        {
+            console.log(index.toString() + " is odd.");
+        }
+
+        switch (index)
+        {
+            case 1:
+            {
+                console.log(index.toString() + " is one.");
+                break;
+            }
+            case 2:
+            {
+                console.log(index.toString() + " is two.");
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
+}
+
+if ((process.argv[2] < 0) || (process.argv[2] > 5))
+{
+    console.log("argument must be 0-5.");
+    process.exit(1);
+}
+
+f1(process.argv[2]);
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & node ..\..\example\Javascript\example.js 5
+続行するには何かキーを押してください . . .
+0 is even.
+1 is odd.
+1 is one.
+2 is even.
+2 is two.
+3 is odd.
+4 is even.
+5 is odd.
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & node ..\..\example\Javascript\example.js 6
+続行するには何かキーを押してください . . .
+argument must be 0-5.
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & pwsh c1tester_add_trace.ps1 -report -add_object_code ..\..\example\Javascript\example.js
+続行するには何かキーを押してください . . .
+トレース追加を完了しました。
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\Javascript
+続行するには何かキーを押してください . . .
+ ドライブ D のボリューム ラベルがありません。
+ ボリューム シリアル番号は 5E5B-9C13 です
+
+ D:\TOOL\C1Tester-main\example\Javascript のディレクトリ
+
+2021/07/06  19:49    <DIR>          .
+2021/07/06  19:49    <DIR>          ..
+2021/07/06  19:49               137 c1tester_example.js_report.csv
+2021/07/06  19:49             5,690 example.js
+2021/07/06  19:28               808 _example.js
+               3 個のファイル               6,635 バイト
+               2 個のディレクトリ  152,133,279,744 バイトの空き領域
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\example.js
+続行するには何かキーを押してください . . .
+//縺薙・陦後・蜃ｦ逅・↓蠢・ｦ・
+//C1Tester no trace start
+//  繝悶Ο繝・け繧ｳ繝｡繝ｳ繝医・繧ｹ繧ｯ繝ｪ繝励ヨ縺ｫ繧医▲縺ｦ鄂ｮ謠帙＆繧後ｋ縲・
+const c1TesterPath = require('path');
+const c1TesterFs = require("fs");
+const c1TesterParse = require('csv-parse/lib/sync')
+const c1TesterStringify = require('csv-stringify/lib/sync')
+
+function prepareStackTraceForC1Tester(error, structuredStackTrace)
+{
+    let tmp = structuredStackTrace[0].getFileName().split("\\");
+    c1tester.filename = tmp[tmp.length - 1];
+    c1tester.lineNumber = structuredStackTrace[0].getLineNumber();
+    c1tester.functionName = structuredStackTrace[0].getFunctionName();
+}
+
+class C1Tester
+{
+    constructor()
+    {
+        this.enabledTrace = true;
+        this.pass = new Map();
+        this.passFile = "";
+        this.reportFile = "";
+        this.filename = "";
+        this.lineNumber = "";
+        this.functionName = "";
+        this.enabledReport = false;
+        this.csv = null;
+        this.reportHash = new Map();
+    }
+
+    initialize()
+    {
+        //繝医Ξ繝ｼ繧ｹ縺檎┌蜉ｹ縺・
+        if (!this.enabledTrace)
+        {
+            return;
+        }
+
+        let backup = Error.prepareStackTrace;
+        Error.captureStackTrace(this, this.initialize);
+        Error.prepareStackTrace = prepareStackTraceForC1Tester;
+        this.stack;
+        Error.prepareStackTrace = backup;
+        let selfFolder = c1TesterPath.dirname(process.argv[1]);
+        this.passFile = "{0}_{1}_pass.csv";
+        this.passFile = this.passFile.replace("\{0\}", "c1tester");
+        this.passFile = this.passFile.replace("\{1\}", this.filename);
+        this.passFile = selfFolder + "/" + this.passFile;
+        this.reportFile = "{0}_{1}_report.csv";
+        this.reportFile = this.reportFile.replace("\{0\}", "c1tester");
+        this.reportFile = this.reportFile.replace("\{1\}", this.filename);
+        let reportFileBackup = selfFolder + "/_" + this.reportFile;
+        this.reportFile = selfFolder + "/" + this.reportFile;
+
+        try
+        {
+            c1TesterFs.unlinkSync(this.passFile);
+        }
+        catch (error)
+        {
+            //nop
+        }
+
+        //蝣ｱ蜻翫ヵ繧｡繧､繝ｫ縺梧怏繧九°
+        if (c1TesterFs.existsSync(this.reportFile))
+        {
+            let content = c1TesterFs.readFileSync(this.reportFile, "utf-8");
+            this.csv = c1TesterParse(content, {columns: true});
+
+            //蜃ｦ逅・婿豕輔ｒ蜷台ｸ翫☆繧九◆繧√・繝上ャ繧ｷ繝･繝・・繝悶Ν繧剃ｽ懈・縺吶ｋ繝ｫ繝ｼ繝・
+            for (let index = 0; index < this.csv.length; index++)
+            {
+                this.reportHash.set(this.csv[index].trace_id, index);
+            }
+
+            try
+            {
+                c1TesterFs.unlinkSync(reportFileBackup);
+            }
+            catch (error)
+            {
+                //菫晉蕗
+            }
+
+            c1TesterFs.renameSync(this.reportFile, reportFileBackup);
+            this.enabledReport = true;
+        }
+    }
+
+    trace(traceId)
+    {
+        //繝医Ξ繝ｼ繧ｹ縺檎┌蜉ｹ縺・
+        if (!this.enabledTrace)
+        {
+            return;
+        }
+
+        //譛ｪ蜃ｺ蜉帙°
+        if (!this.pass.has(traceId))
+        {
+            let backup = Error.prepareStackTrace;
+            Error.captureStackTrace(this, this.trace);
+            Error.prepareStackTrace = this.prepareStackTraceForC1Tester;
+            this.stack;
+            Error.prepareStackTrace = backup;
+            let tmpDate = new Date();
+            let content = this.filename + ":" + this.lineNumber + "(" + this.functionName + ") " + tmpDate.toLocaleString();
+            c1TesterFs.writeFileSync(this.passFile, traceId + "," + content + "\n", { flag: "a+" });
+            this.pass.set(traceId, true);
+
+            //蝣ｱ蜻翫☆繧九°
+            if (this.enabledReport)
+            {
+                //繧ｨ繝ｳ繝医Μ繝ｼ縺梧怏繧九°
+                if (this.reportHash.has(traceId))
+                {
+                    let index = this.reportHash.get(traceId);
+
+                    //譛ｪ繝代せ縺・
+                    if (this.csv[index].report == "-")
+                    {
+                        this.csv[index].report = "P";
+                        this.csv[index].timestamp = content;
+                    }
+
+                    let contentCsv = c1TesterStringify(this.csv, { quoted: true, header: true });
+                    c1TesterFs.writeFileSync(this.reportFile, contentCsv, { flag: "w" });
+                }
+            }
+        }
+    }
+}
+//C1Tester no trace end
+
+var c1tester = new C1Tester();
+c1tester.initialize();
+function f1(params)
+{
+c1tester.trace("1");
+    for (let index = 0; index <= params; index++)
+    {
+c1tester.trace("2");
+        if (index % 2 == 0)
+        {
+c1tester.trace("3");
+            console.log(index.toString() + " is even.");
+        }
+        else
+        {
+c1tester.trace("4");
+            console.log(index.toString() + " is odd.");
+        }
+
+        switch (index)
+        {
+            case 1:
+            {
+c1tester.trace("5");
+                console.log(index.toString() + " is one.");
+                break;
+            }
+            case 2:
+            {
+c1tester.trace("6");
+                console.log(index.toString() + " is two.");
+                break;
+            }
+            default:
+            {
+c1tester.trace("7");
+                break;
+            }
+        }
+    }
+}
+
+if ((process.argv[2] < 0) || (process.argv[2] > 5))
+{
+c1tester.trace("8");
+    console.log("argument must be 0-5.");
+    process.exit(1);
+}
+
+f1(process.argv[2]);
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\c1tester_example.js_report.csv
+続行するには何かキーを押してください . . .
+"trace_id","report","timestamp"
+"1","-","-"
+"2","-","-"
+"3","-","-"
+"4","-","-"
+"5","-","-"
+"6","-","-"
+"7","-","-"
+"8","-","-"
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & node ..\..\example\Javascript\example.js 5
+続行するには何かキーを押してください . . .
+0 is even.
+1 is odd.
+1 is one.
+2 is even.
+2 is two.
+3 is odd.
+4 is even.
+5 is odd.
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\Javascript
+続行するには何かキーを押してください . . .
+ ドライブ D のボリューム ラベルがありません。
+ ボリューム シリアル番号は 5E5B-9C13 です
+
+ D:\TOOL\C1Tester-main\example\Javascript のディレクトリ
+
+2021/07/06  19:49    <DIR>          .
+2021/07/06  19:49    <DIR>          ..
+2021/07/06  19:49               301 c1tester_example.js_pass.csv
+2021/07/06  19:49               401 c1tester_example.js_report.csv
+2021/07/06  19:49             5,690 example.js
+2021/07/06  19:49               137 _c1tester_example.js_report.csv
+2021/07/06  19:28               808 _example.js
+               5 個のファイル               7,337 バイト
+               2 個のディレクトリ  152,131,117,056 バイトの空き領域
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\c1tester_example.js_pass.csv
+続行するには何かキーを押してください . . .
+1,example.js:138(null) 2021-7-6 7:49:52 PM
+2,example.js:138(null) 2021-7-6 7:49:52 PM
+3,example.js:138(null) 2021-7-6 7:49:52 PM
+7,example.js:138(null) 2021-7-6 7:49:52 PM
+4,example.js:138(null) 2021-7-6 7:49:52 PM
+5,example.js:138(null) 2021-7-6 7:49:52 PM
+6,example.js:138(null) 2021-7-6 7:49:52 PM
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\c1tester_example.js_report.csv
+続行するには何かキーを押してください . . .
+"trace_id","report","timestamp"
+"1","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"2","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"3","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"4","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"5","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"6","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"7","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"8","-","-"
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & node ..\..\example\Javascript\example.js 6
+続行するには何かキーを押してください . . .
+argument must be 0-5.
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\Javascript
+続行するには何かキーを押してください . . .
+ ドライブ D のボリューム ラベルがありません。
+ ボリューム シリアル番号は 5E5B-9C13 です
+
+ D:\TOOL\C1Tester-main\example\Javascript のディレクトリ
+
+2021/07/06  19:50    <DIR>          .
+2021/07/06  19:50    <DIR>          ..
+2021/07/06  19:50                43 c1tester_example.js_pass.csv
+2021/07/06  19:50               440 c1tester_example.js_report.csv
+2021/07/06  19:49             5,690 example.js
+2021/07/06  19:49               401 _c1tester_example.js_report.csv
+2021/07/06  19:28               808 _example.js
+               5 個のファイル               7,382 バイト
+               2 個のディレクトリ  152,128,827,392 バイトの空き領域
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\c1tester_example.js_pass.csv
+続行するには何かキーを押してください . . .
+8,example.js:138(null) 2021-7-6 7:50:03 PM
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\Javascript\c1tester_example.js_report.csv
+続行するには何かキーを押してください . . .
+"trace_id","report","timestamp"
+"1","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"2","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"3","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"4","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"5","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"6","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"7","P","example.js:138(null) 2021-7-6 7:49:52 PM"
+"8","P","example.js:138(null) 2021-7-6 7:50:03 PM"
+
+D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>
