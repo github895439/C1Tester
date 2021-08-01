@@ -41,9 +41,9 @@ $c__extension =
             '^[ ]*using',
             '^[ ]*try',
             '^[ ]*switch',
-            ' class',
-            ' struct',
-            ' enum'
+            ' class ',
+            ' struct ',
+            ' enum '
         )
     };
     '.ps1' =
@@ -59,7 +59,7 @@ $c__extension =
             '^[ ]*try',
             '^[ ]*switch',
             '^[ ]*class',
-            ' enum'
+            ' enum '
         )
     };
     '.js'  =
@@ -75,7 +75,7 @@ $c__extension =
             '^[ ]*try',
             '^[ ]*switch',
             '^[ ]*class',
-            ' enum'
+            ' enum '
         )
     };
 }
@@ -106,11 +106,43 @@ function Exiter($code, $error_info)
     exit $code
 }
 
-# powershell専用処理関数
-function for_ps1($work)
+# 言語依存処理振り分け関数
+function for_extension
+{
+    # 言語分岐
+    switch ($extension)
+    {
+        # PowerShell
+        '.ps1'
+        {
+            $rtn = for_ps1($args)
+            return $rtn
+        }
+        # C#
+        '.cs'
+        {
+            $rtn = for_cs($args)
+            return $rtn
+        }
+        # Javascript
+        '.js'
+        {
+            $rtn = for_js($args)
+            return $rtn
+        }
+        Default
+        {
+            Exiter -1 $work
+            break
+        }
+    }
+}
+
+# PowerShell専用処理関数
+function for_ps1
 {
     # 処理分岐
-    switch ($work)
+    switch ($args)
     {
         # オブジェクトコード追加
         0
@@ -153,18 +185,21 @@ function for_ps1($work)
             # 不トレースブロックの開始か
             if ($line2 -match '^# c1tester no trace start')
             {
-                $global:no_trace = $true
-                break
+                return $true
             }
 
             # 不トレースブロックの終了か
             if ($line2 -match '^# c1tester no trace end')
             {
-                $global:no_trace = $false
-                break
+                return $false
             }
 
-            break
+            return $false
+        }
+        3
+        {
+            $rtn =  $line1 -match $item
+            return $rtn
         }
         Default
         {
@@ -175,10 +210,10 @@ function for_ps1($work)
 }
 
 # C#専用処理関数
-function for_cs($work)
+function for_cs
 {
     # 処理分岐
-    switch ($work)
+    switch ($args)
     {
         # オブジェクトコード追加
         0
@@ -192,7 +227,7 @@ function for_cs($work)
                 for ($i = 0; $i -lt $source_new.Count; $i++)
                 {
                     # オブジェクトコードのコメントか
-                    if ($source_new[$i] -match '^[ ]*//C1Tester no trace start')
+                    if ($source_new[$i] -cmatch '^[ ]*//C1Tester no trace start')
                     {
                         return
                     }
@@ -210,7 +245,7 @@ function for_cs($work)
                     $line2 = $source_new[$i]
 
                     # 追加場所、かつ、未追加か
-                    if (($line1 -match '^namespace') -and ($line2 -match '^\{') -and (-not $done))
+                    if (($line1 -cmatch '^namespace') -and ($line2 -cmatch '^\{') -and (-not $done))
                     {
                         $object_path = (Convert-Path .) + '\ObjectCode\' + $c__extension[$extension]['object_code']
                         $object_code = Get-Content $object_path
@@ -234,20 +269,18 @@ function for_cs($work)
         1
         {
             # 不トレースブロックの開始か
-            if ($line2 -match '^[ ]*//C1Tester no trace start')
+            if ($line2 -cmatch '^[ ]*//C1Tester no trace start')
             {
-                $global:no_trace = $true
-                break
+                return $true
             }
 
             # 不トレースブロックの終了か
-            if ($line2 -match '^[ ]*//C1Tester no trace end')
+            if ($line2 -cmatch '^[ ]*//C1Tester no trace end')
             {
-                $global:no_trace = $false
-                break
+                return $false
             }
 
-            break
+            return $false
         }
         2
         {
@@ -259,14 +292,19 @@ function for_cs($work)
                 $line = $source[$i + $j]
         
                 # コメントではないか
-                if ($line -notmatch $c__extension[$extension]['line_comment'])
+                if ($line -cnotmatch $c__extension[$extension]['line_comment'])
                 {
                     $line3b = $line
                     break
                 }
             }
 
-            return (($line3b -ne '') -and ($line3b -match '[,:\]\}]$'))
+            return (($line3b -ne '') -and ($line3b -cmatch '[,:\]\}]$'))
+        }
+        3
+        {
+            $rtn =  $line1 -cmatch $item
+            return $rtn
         }
         Default
         {
@@ -277,10 +315,10 @@ function for_cs($work)
 }
 
 # Javascript専用処理関数
-function for_js($work)
+function for_js
 {
     # 処理分岐
-    switch ($work)
+    switch ($args)
     {
         # オブジェクトコード追加
         0
@@ -294,7 +332,7 @@ function for_js($work)
                 for ($i = 0; $i -lt $source_new.Count; $i++)
                 {
                     # オブジェクトコードのコメントか
-                    if ($source_new[$i] -match '^[ ]*//C1Tester no trace start')
+                    if ($source_new[$i] -cmatch '^[ ]*//C1Tester no trace start')
                     {
                         return
                     }
@@ -325,20 +363,18 @@ function for_js($work)
         1
         {
             # 不トレースブロックの開始か
-            if ($line2 -match '^[ ]*//C1Tester no trace start')
+            if ($line2 -cmatch '^[ ]*//C1Tester no trace start')
             {
-                $global:no_trace = $true
-                break
+                return $true
             }
 
             # 不トレースブロックの終了か
-            if ($line2 -match '^[ ]*//C1Tester no trace end')
+            if ($line2 -cmatch '^[ ]*//C1Tester no trace end')
             {
-                $global:no_trace = $false
-                break
+                return $false
             }
 
-            break
+            return $false
         }
         2
         {
@@ -350,14 +386,19 @@ function for_js($work)
                 $line = $source[$i + $j]
         
                 # コメントではないか
-                if ($line -notmatch $c__extension[$extension]['line_comment'])
+                if ($line -cnotmatch $c__extension[$extension]['line_comment'])
                 {
                     $line3b = $line
                     break
                 }
             }
 
-            return (($line3b -ne '') -and ($line3b -match '[,:\]\}]$'))
+            return (($line3b -ne '') -and ($line3b -cmatch '[,:\]\}]$'))
+        }
+        3
+        {
+            $rtn =  $line1 -cmatch $item
+            return $rtn
         }
         Default
         {
@@ -454,7 +495,6 @@ if ($is_exist_trace)
 
 $trace_id = [int]1
 $source[0] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
-$global:no_trace = $false
 
 # トレース追加ループ
 for ($i = 1; $i -lt $source.length - 1; $i++)
@@ -464,33 +504,11 @@ for ($i = 1; $i -lt $source.length - 1; $i++)
     $line2 = $source[$i]
     $line3 = $source[$i + 1]
 
-    # 言語依存分岐
-    switch ($extension)
-    {
-        '.ps1'
-        {
-            for_ps1(1)
-            break
-        }
-        '.cs'
-        {
-            for_cs(1)
-            break
-        }
-        '.js'
-        {
-            for_js(1)
-            break
-        }
-        Default
-        {
-            Exiter -1 $work
-            break
-        }
-    }
+    # 言語依存処理振り分け関数
+    $rtn = for_extension(1)
 
     # 不トレースブロックか
-    if ($global:no_trace)
+    if ($rtn)
     {
         continue
     }
@@ -512,8 +530,11 @@ for ($i = 1; $i -lt $source.length - 1; $i++)
     # 前行がどれかの除外条件にマッチするかのループ
     foreach ($item in $c__extension[$extension]['regex_ignore'])
     {
+        # 言語依存処理振り分け関数
+        $rtn = for_extension(3)
+        
         # 除外条件にマッチするか
-        if ($line1 -match $item)
+        if ($rtn)
         {
             $ignore = $true
             break
@@ -526,30 +547,8 @@ for ($i = 1; $i -lt $source.length - 1; $i++)
         continue
     }
 
-    # 言語依存分岐
-    switch ($extension)
-    {
-        '.ps1'
-        {
-            $rtn = $false
-            break
-        }
-        '.cs'
-        {
-            $rtn = for_cs(2)
-            break
-        }
-        '.js'
-        {
-            $rtn = for_js(2)
-            break
-        }
-        Default
-        {
-            Exiter -1 $work
-            break
-        }
-    }
+    # 言語依存処理振り分け関数
+    $rtn = for_extension(2)
 
     # 後処理不要か
     if ($rtn)
@@ -571,30 +570,8 @@ for ($i = 1; $i -lt $source.length - 1; $i++)
 
 $source[$i] | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
 
-# 言語依存分岐
-switch ($extension)
-{
-    '.ps1'
-    {
-        for_ps1(0)
-        break
-    }
-    '.cs'
-    {
-        for_cs(0)
-        break
-    }
-    '.js'
-    {
-        for_js(0)
-        break
-    }
-    Default
-    {
-        Exiter -1 $work
-        break
-    }
-}
+# 言語依存処理振り分け関数
+for_extension(0)
 
 # no_remain_backupオプションがあるか
 if ($no_remain_backup)
