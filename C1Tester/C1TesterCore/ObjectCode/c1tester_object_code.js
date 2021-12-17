@@ -1,19 +1,6 @@
 ﻿//この行は処理に必要
 //C1Tester no trace start
 //  ブロックコメントはスクリプトによって置換される。
-const c1TesterPath = require('path');
-const c1TesterFs = require("fs");
-const c1TesterParse = require('csv-parse/lib/sync')
-const c1TesterStringify = require('csv-stringify/lib/sync')
-
-function prepareStackTraceForC1Tester(error, structuredStackTrace)
-{
-    let tmp = structuredStackTrace[0].getFileName().split("\\");
-    c1tester.filename = tmp[tmp.length - 1];
-    c1tester.lineNumber = structuredStackTrace[0].getLineNumber();
-    c1tester.functionName = structuredStackTrace[0].getFunctionName();
-}
-
 class C1Tester
 {
     constructor()
@@ -23,8 +10,6 @@ class C1Tester
         this.passFile = "";
         this.reportFile = "";
         this.filename = "";
-        this.lineNumber = "";
-        this.functionName = "";
         this.enabledReport = false;
         this.csv = null;
         this.reportHash = new Map();
@@ -38,11 +23,8 @@ class C1Tester
             return;
         }
 
-        let backup = Error.prepareStackTrace;
-        Error.captureStackTrace(this, this.initialize);
-        Error.prepareStackTrace = prepareStackTraceForC1Tester;
-        this.stack;
-        Error.prepareStackTrace = backup;
+        let tmp = __filename.split("/");
+        this.filename = tmp[tmp.length - 1];
         let selfFolder = c1TesterPath.dirname(process.argv[1]);
         this.passFile = "/* replace_pass_filename_format */";
         this.passFile = this.passFile.replace("\{0\}", "/* replace_product */");
@@ -69,7 +51,7 @@ class C1Tester
             let content = c1TesterFs.readFileSync(this.reportFile, "utf-8");
             this.csv = c1TesterParse(content, {columns: true});
 
-            //処理方法を向上するためのハッシュテーブルを作成するループ
+            //処理速度を向上するためのハッシュテーブルを作成するループ
             for (let index = 0; index < this.csv.length; index++)
             {
                 this.reportHash.set(this.csv[index].trace_id, index);
@@ -100,14 +82,23 @@ class C1Tester
         //未出力か
         if (!this.pass.has(traceId))
         {
-            let backup = Error.prepareStackTrace;
-            Error.captureStackTrace(this, this.trace);
-            Error.prepareStackTrace = this.prepareStackTraceForC1Tester;
-            this.stack;
-            Error.prepareStackTrace = backup;
+            let stack = new Error().stack;
+            let tmp1 = stack.split("\n");
+            let tmp2 = tmp1[2].split(" ");
+            let functionName = tmp2[5];
+            let tmp3 = tmp2[6].split(":");
+            let lineNumber = tmp3[3];
+            let tmp4 = tmp3[2].split("/");
+            let filename = tmp4[tmp4.length - 1];
             let tmpDate = new Date();
-            let content = this.filename + ":" + this.lineNumber + "(" + this.functionName + ") " + tmpDate.toLocaleString();
-            c1TesterFs.writeFileSync(this.passFile, traceId + "," + content + "\n", { flag: "a+" });
+            let content =
+            [
+                filename,
+                lineNumber,
+                functionName,
+                tmpDate.toLocaleString()
+            ];
+            c1TesterFs.writeFileSync(this.passFile, traceId + "," + content.join(",") + "\n", { flag: "a+" });
             this.pass.set(traceId, true);
 
             //報告するか
@@ -122,7 +113,10 @@ class C1Tester
                     if (this.csv[index].report == "-")
                     {
                         this.csv[index].report = "P";
-                        this.csv[index].timestamp = content;
+                        this.csv[index].filename = content[0];
+                        this.csv[index].line_number = content[1];
+                        this.csv[index].function_name = content[2];
+                        this.csv[index].timestamp = content[3];
                     }
 
                     let contentCsv = c1TesterStringify(this.csv, { quoted: true, header: true });

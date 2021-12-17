@@ -7,13 +7,28 @@
         private string m_ReportFile;
         private bool m_EnabledReport;
         private Dictionary<string, bool> m_Pass;
-        private Dictionary<string, Report> m_Csv = new Dictionary<string, Report>();
+        private Dictionary<string, Dictionary<string, string>> m_Csv = new Dictionary<string, Dictionary<string, string>>();
         private string m_CsvHeader;
 
-        private class Report
+        private void ParseCsv(string content)
         {
-            public string m_Report;
-            public string m_Timestamp;
+            string[] tmp;
+            Dictionary<string, string> tmp2;
+
+            m_CsvHeader = content[0];
+
+            //CSV読み取りループ
+            for (int i = 1; i < content.Length; i++)
+            {
+                tmp = content[i].Split(',');
+                tmp2 = new Dictionary<string, string>();
+                tmp2["/* replace_report_member */"] = tmp[1].Trim('"');
+                tmp2["/* replace_filename_member */"] = tmp[2].Trim('"');
+                tmp2["/* replace_line_number_member */"] = tmp[3].Trim('"');
+                tmp2["/* replace_function_name_member */"] = tmp[4].Trim('"');
+                tmp2["/* replace_timestamp_member */"] = tmp[5].Trim('"');
+                m_Csv[tmp[0].Trim('"')] = tmp2;
+            }
         }
 
         public C1Tester(
@@ -21,7 +36,7 @@
         {
             string[] tmp;
             string[] fileContent;
-            Report tmp2;
+            Dictionary<string, string> tmp2;
 
             //トレースが無効か
             if (!m_EnabledTrace)
@@ -40,15 +55,8 @@
             if (File.Exists(m_ReportFile))
             {
                 fileContent = File.ReadAllLines(m_ReportFile);
-                m_CsvHeader = fileContent[0];
 
-                //CSV読み取りループ
-                for (int i = 1; i < fileContent.Length; i++)
-                {
-                    tmp = fileContent[i].Split(',');
-                    tmp2 = new Report() { m_Report = tmp[1].Trim('"'), m_Timestamp = tmp[2].Trim('"') };
-                    m_Csv[tmp[0].Trim('"')] = tmp2;
-                }
+                ParseCsv(fileContent);
 
                 File.Delete("_" + m_ReportFile);
                 File.Move(m_ReportFile, "_" + m_ReportFile);
@@ -61,8 +69,8 @@
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0)
         {
-            string content;
-            string line;
+            string[] content;
+            string[] line;
 
             //トレースが無効か
             if (!m_EnabledTrace)
@@ -73,13 +81,19 @@
             //未出力か
             if (!m_Pass.Keys.Contains(traceId))
             {
-                content = Path.GetFileName(sourceFilePath) + ":" + sourceLineNumber + "(" + memberName + ") " + DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+                content = new string[]
+                (
+                    Path.GetFileName(sourceFilePath),
+                    sourceLineNumber,
+                    memberName,
+                    DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")
+                );
 #if NET
                 File.AppendAllTextAsync(m_PassFile, tmp);
 #else
                 lock (m_PassFile)
                 {
-                    File.AppendAllText(m_PassFile, traceId + "," + content + Environment.NewLine);
+                    File.AppendAllText(m_PassFile, traceId + "," + String.Join(',', content) + Environment.NewLine);
                 }
 #endif
                 m_Pass[traceId] = true;
@@ -91,10 +105,13 @@
                     if (m_Csv.Keys.Contains(traceId))
                     {
                         //未パスか
-                        if (m_Csv[traceId].m_Report == "-")
+                        if (m_Csv[traceId]["/* replace_report_member */"] == "-")
                         {
-                            m_Csv[traceId].m_Report = "P";
-                            m_Csv[traceId].m_Timestamp = content;
+                            m_Csv[traceId]["/* replace_report_member */"] = "P";
+                            m_Csv[traceId]["/* replace_filename_member */"] = content[0];
+                            m_Csv[traceId]["/* replace_line_number_member */"] = content[1];
+                            m_Csv[traceId]["/* replace_function_name_member */"] = content[2];
+                            m_Csv[traceId]["/* replace_timestamp_member */"] = content[3];
                         }
 
                         lock (m_ReportFile)
@@ -104,7 +121,14 @@
                             //CSV書き込みループ
                             foreach (string item in m_Csv.Keys)
                             {
-                                line = "\"" + item + "\",\"" + m_Csv[item].m_Report + "\",\"" + m_Csv[item].m_Timestamp + "\"";
+                                line = "\"" + item + "\",\"";
+
+                                //ダブルクォート追加ループ
+                                foreach (string item2 in m_Csv[item].Keys)
+                                {
+                                    line += ",\"" + m_Csv[item][item2] + "\",\"";
+                                }
+
                                 File.AppendAllText(m_ReportFile, line + Environment.NewLine);
                             }
                         }

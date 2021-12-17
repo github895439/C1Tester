@@ -5,7 +5,8 @@
     [switch]$add_object_code,
     [switch]$print_supporting_extension,
     [switch]$no_remain_backup,
-    [switch]$report
+    [switch]$report,
+    [switch]$not_node
 )
 
 # インデックスがエラーコード
@@ -23,6 +24,15 @@ $c__setting =
     'product'                = 'c1tester';
     'pass_filename_format'   = '{0}_{1}_pass.csv';
     'report_filename_format' = '{0}_{1}_report.csv';
+    'csv_content' =
+    @(
+        'trace_id',
+        'report',
+        'filename',
+        'line_number',
+        'function_name',
+        'timestamp'
+    );
 }
 
 $c__extension =
@@ -69,6 +79,7 @@ $c__extension =
         'add'                  = 'c1tester.trace("{0}");';
         'char_code_page'       = 'utf8';
         'object_code'          = 'c1tester_object_code.js';
+        'object_code_not_node' = 'c1tester_object_code_not_node.js';
         'line_comment'         = '^[ ]*//';
         'regex_ignore'         =
         @(
@@ -91,7 +102,7 @@ function Exiter($code, $error_info)
         # 異常終了か
         if ($code -ne 0)
         {
-            Write-Host 'オプションは「pwsh -c Get-Help <パス付きスクリプトファイル名>」を参照して下さい。'
+            Write-Host 'オプションは「pwsh -c Get-Help <パス>c1tester_add_trace.ps1」を参照して下さい。'
 
             # 想定外か
             if ($code -eq -1)
@@ -256,6 +267,12 @@ function for_cs
                             $tmp = $object_code[$j] -replace '/\* replace_product \*/', $c__setting['product']
                             $tmp = $tmp -replace '/\* replace_pass_filename_format \*/', $c__setting['pass_filename_format']
                             $tmp = $tmp -replace '/\* replace_report_filename_format \*/', $c__setting['report_filename_format']
+                            $tmp = $tmp -replace '/\* replace_trace_id_member \*/', $c__setting['csv_content'][0]
+                            $tmp = $tmp -replace '/\* replace_report_member \*/', $c__setting['csv_content'][1]
+                            $tmp = $tmp -replace '/\* replace_filename_member \*/', $c__setting['csv_content'][2]
+                            $tmp = $tmp -replace '/\* replace_line_number_member \*/', $c__setting['csv_content'][3]
+                            $tmp = $tmp -replace '/\* replace_function_name_member \*/', $c__setting['csv_content'][4]
+                            $tmp = $tmp -replace '/\* replace_timestamp_member \*/', $c__setting['csv_content'][5]
                             $tmp | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
                         }
                     }
@@ -339,7 +356,14 @@ function for_js
                 }
 
                 Remove-Item $source_path
-                $object_path = (Convert-Path .) + '\ObjectCode\' + $c__extension[$extension]['object_code']
+                $object_code_filename = $c__extension[$extension]['object_code']
+
+                if ($not_node)
+                {
+                    $object_code_filename = $c__extension[$extension]['object_code_not_node']
+                }
+
+                $object_path = (Convert-Path .) + '\ObjectCode\' + $object_code_filename
                 $object_code = Get-Content $object_path
 
                 # オブジェクトコード追加ループ
@@ -348,6 +372,12 @@ function for_js
                     $tmp = $object_code[$i] -replace '/\* replace_product \*/', $c__setting['product']
                     $tmp = $tmp -replace '/\* replace_pass_filename_format \*/', $c__setting['pass_filename_format']
                     $tmp = $tmp -replace '/\* replace_report_filename_format \*/', $c__setting['report_filename_format']
+                    $tmp = $tmp -replace '/\* replace_trace_id_member \*/', $c__setting['csv_content'][0]
+                    $tmp = $tmp -replace '/\* replace_report_member \*/', $c__setting['csv_content'][1]
+                    $tmp = $tmp -replace '/\* replace_filename_member \*/', $c__setting['csv_content'][2]
+                    $tmp = $tmp -replace '/\* replace_line_number_member \*/', $c__setting['csv_content'][3]
+                    $tmp = $tmp -replace '/\* replace_function_name_member \*/', $c__setting['csv_content'][4]
+                    $tmp = $tmp -replace '/\* replace_timestamp_member \*/', $c__setting['csv_content'][5]
                     $tmp | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
                 }
 
@@ -451,7 +481,15 @@ if ($report)
         Remove-Item $report_path
     }
 
-    '"trace_id","report","timestamp"' | Out-File ($report_path) -Append -Encoding utf8
+    $csv_header = '"' + $c__setting.csv_content[0] + '"'
+
+    # トレース内容名追加ループ
+    for ($i = 1; $i -lt $c__setting.csv_content.Count; $i++)
+    {
+        $csv_header += ',"' + $c__setting.csv_content[$i] + '"'
+    }
+
+    $csv_header | Out-File ($report_path) -Append -Encoding utf8
 }
 
 # ファイルが無いか
@@ -561,7 +599,14 @@ for ($i = 1; $i -lt $source.length - 1; $i++)
     # reportオプション有りか
     if ($report)
     {
-        $default_report = '"' + [string]$trace_id + '"' + ',"-","-"'
+        $default_report = '"' + [string]$trace_id + '"'
+
+        # 空列追加ループ
+        for ($j = 1; $j -lt $c__setting.csv_content.Count; $j++)
+        {
+            $default_report += ',"-"'
+        }
+
         $default_report | Out-File ($report_path) -Append -Encoding utf8
     }
 

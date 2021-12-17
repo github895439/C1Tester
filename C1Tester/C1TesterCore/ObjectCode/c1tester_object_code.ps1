@@ -70,8 +70,15 @@ class c1tester
         {
             $tmp = Get-PSCallStack
             $filename = Split-Path $tmp[1].ScriptName -Leaf
-            $content = $filename + ":" + $tmp[1].ScriptLineNumber + "(" + $tmp[1].FunctionName + ") " + (Get-Date -Format 'yyyy/MM/dd HH:mm:ss')
-            $trace_id + "," + $content | Out-File ($this.h_pass_file) -Append -Encoding utf8
+            $datetime = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
+            $content =
+            @(
+                $filename,
+                $tmp[1].ScriptLineNumber,
+                $tmp[1].FunctionName,
+                $datetime
+            )
+            $trace_id + "," + ($content -join ',') | Out-File ($this.h_pass_file) -Append -Encoding utf8
             $this.h_pass[$trace_id] = $true
 
             # 報告するか
@@ -86,8 +93,11 @@ class c1tester
                     if ($this.h_csv[$index].report -eq '-')
                     {
                         $this.h_csv[$index].report = 'P'
+                        $this.h_csv[$index].filename = $filename
+                        $this.h_csv[$index].line_number = $tmp[1].ScriptLineNumber
+                        $this.h_csv[$index].function_name = $tmp[1].FunctionName
                         $this.h_csv[$index].timestamp = $content
-                        $this.h_csv | Select-Object -Property trace_id,report,timestamp | Export-Csv -Path $this.h_report_file -Encoding utf8 -NoTypeInformation
+                        $this.h_csv | Select-Object -Property trace_id,report,filename,line_number,function_name,timestamp | Export-Csv -UseQuotes Always -Path $this.h_report_file -Encoding utf8 -NoTypeInformation
                     }
                 }
             }
