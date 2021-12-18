@@ -1,6 +1,11 @@
 ﻿//この行は処理に必要
 //C1Tester no trace start
 //  ブロックコメントはスクリプトによって置換される。
+const c1TesterPath = require('path');
+const c1TesterFs = require("fs");
+const c1TesterParse = require('csv-parse/lib/sync')
+const c1TesterStringify = require('csv-stringify/lib/sync')
+
 class C1Tester
 {
     constructor()
@@ -23,7 +28,7 @@ class C1Tester
             return;
         }
 
-        let tmp = __filename.split("/");
+        let tmp = __filename.split("\\");
         this.filename = tmp[tmp.length - 1];
         let selfFolder = c1TesterPath.dirname(process.argv[1]);
         this.passFile = "/* replace_pass_filename_format */";
@@ -87,8 +92,8 @@ class C1Tester
             let tmp2 = tmp1[2].split(" ");
             let functionName = tmp2[5];
             let tmp3 = tmp2[6].split(":");
-            let lineNumber = tmp3[3];
-            let tmp4 = tmp3[2].split("/");
+            let lineNumber = tmp3[2];
+            let tmp4 = tmp3[1].split("\\");
             let filename = tmp4[tmp4.length - 1];
             let tmpDate = new Date();
             let content =

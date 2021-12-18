@@ -13,6 +13,7 @@ namespace C1Tester
         public bool m_ScriptOption_Overwrite = false;
         public bool m_ScriptOption_NotRemainBackup = false;
         public bool m_ScriptOption_Report = false;
+        public bool m_ScriptOption_NotNode = false;
         public string m_SourceFolderPath = string.Empty;
         public string[] m_Extension;
         public List<Target> m_TargetList = new List<Target>();

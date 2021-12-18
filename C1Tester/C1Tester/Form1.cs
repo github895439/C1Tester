@@ -190,6 +190,7 @@ namespace C1Tester
             m_Config.m_ScriptOption_Overwrite = checkBox2.Checked;
             m_Config.m_ScriptOption_NotRemainBackup = checkBox6.Checked;
             m_Config.m_ScriptOption_Report = checkBox3.Checked;
+            m_Config.m_ScriptOption_NotNode = checkBox4.Checked;
 
             //グリッドの行ループ
             for (int i = 0; i < dataGridView1.RowCount; i++)
@@ -614,6 +615,12 @@ namespace C1Tester
             if (m_Config.m_ScriptOption_Report)
             {
                 p.StartInfo.Arguments += " -report";
+            }
+
+            //not_nodeオプション有りか
+            if (m_Config.m_ScriptOption_NotNode)
+            {
+                p.StartInfo.Arguments += " -not_node";
             }
 
             //add_object_codeオプション有りか
