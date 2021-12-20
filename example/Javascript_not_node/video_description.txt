@@ -1,0 +1,2 @@
+1 ブラウザでMap ViewerフォルダのMapViewer.htmlを開く
+2 ★動作

@@ -93,10 +93,10 @@ class c1tester
                     if ($this.h_csv[$index].report -eq '-')
                     {
                         $this.h_csv[$index].report = 'P'
-                        $this.h_csv[$index].filename = $filename
-                        $this.h_csv[$index].line_number = $tmp[1].ScriptLineNumber
-                        $this.h_csv[$index].function_name = $tmp[1].FunctionName
-                        $this.h_csv[$index].timestamp = $content
+                        $this.h_csv[$index].filename = $content[0]
+                        $this.h_csv[$index].line_number = $content[1]
+                        $this.h_csv[$index].function_name = $content[2]
+                        $this.h_csv[$index].timestamp = $content[3]
                         $this.h_csv | Select-Object -Property trace_id,report,filename,line_number,function_name,timestamp | Export-Csv -UseQuotes Always -Path $this.h_report_file -Encoding utf8 -NoTypeInformation
                     }
                 }

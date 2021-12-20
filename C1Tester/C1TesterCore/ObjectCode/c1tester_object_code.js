@@ -40,15 +40,7 @@ class C1Tester
         this.reportFile = this.reportFile.replace("\{1\}", this.filename);
         let reportFileBackup = selfFolder + "/_" + this.reportFile;
         this.reportFile = selfFolder + "/" + this.reportFile;
-
-        try
-        {
-            c1TesterFs.unlinkSync(this.passFile);
-        }
-        catch (error)
-        {
-            //nop
-        }
+        c1TesterFs.unlinkSync(this.passFile);
 
         //報告ファイルが有るか
         if (c1TesterFs.existsSync(this.reportFile))
@@ -62,15 +54,7 @@ class C1Tester
                 this.reportHash.set(this.csv[index].trace_id, index);
             }
 
-            try
-            {
-                c1TesterFs.unlinkSync(reportFileBackup);
-            }
-            catch (error)
-            {
-                //保留
-            }
-
+            c1TesterFs.unlinkSync(reportFileBackup);
             c1TesterFs.renameSync(this.reportFile, reportFileBackup);
             this.enabledReport = true;
         }

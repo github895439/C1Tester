@@ -191,6 +191,7 @@ function for_ps1
 
             break
         }
+        # 不トレースブロック判定
         1
         {
             # 不トレースブロックの開始か
@@ -207,6 +208,28 @@ function for_ps1
 
             return $false
         }
+        # 現時点では効果が低いため実装しない
+        # # コメントのみブロック判定
+        # 2
+        # {
+        #     $line3b = ''
+
+        #     # 後行以降のコメントではない行を探索するループ
+        #     for ($j = 1; $i + $j -lt $source.length; $j++)
+        #     {
+        #         $line = $source[$i + $j]
+        
+        #         # コメントではないか
+        #         if ($line -notmatch $c__extension[$extension]['line_comment'])
+        #         {
+        #             $line3b = $line
+        #             break
+        #         }
+        #     }
+
+        #     return $line3b -match '[,:\]\}]$'
+        # }
+        # 除外条件判定
         3
         {
             $rtn =  $line1 -match $item
@@ -283,6 +306,7 @@ function for_cs
 
             break
         }
+        # 不トレースブロック判定
         1
         {
             # 不トレースブロックの開始か
@@ -299,25 +323,28 @@ function for_cs
 
             return $false
         }
-        2
-        {
-            $line3b = ''
+        # 現時点では効果が低いため実装しない
+        # # コメントのみブロック判定
+        # 2
+        # {
+        #     $line3b = ''
 
-            # 3行目以降のコメントではない行を探索するループ
-            for ($j = 1; $i + $j -lt $source.length; $j++)
-            {
-                $line = $source[$i + $j]
+        #     # 後行以降のコメントではない行を探索するループ
+        #     for ($j = 1; $i + $j -lt $source.length; $j++)
+        #     {
+        #         $line = $source[$i + $j]
         
-                # コメントではないか
-                if ($line -cnotmatch $c__extension[$extension]['line_comment'])
-                {
-                    $line3b = $line
-                    break
-                }
-            }
+        #         # コメントではないか
+        #         if ($line -cnotmatch $c__extension[$extension]['line_comment'])
+        #         {
+        #             $line3b = $line
+        #             break
+        #         }
+        #     }
 
-            return (($line3b -ne '') -and ($line3b -cmatch '[,:\]\}]$'))
-        }
+        #     return $line3b -cmatch '[,:\]\}]$'
+        # }
+        # 除外条件判定
         3
         {
             $rtn =  $line1 -cmatch $item
@@ -390,6 +417,7 @@ function for_js
 
             break
         }
+        # 不トレースブロック判定
         1
         {
             # 不トレースブロックの開始か
@@ -406,25 +434,28 @@ function for_js
 
             return $false
         }
-        2
-        {
-            $line3b = ''
+        # 現時点では効果が低いため実装しない
+        # # コメントのみブロック判定
+        # 2
+        # {
+        #     $line3b = ''
 
-            # 3行目以降のコメントではない行を探索するループ
-            for ($j = 1; $i + $j -lt $source.length; $j++)
-            {
-                $line = $source[$i + $j]
+        #     # 後行以降のコメントではない行を探索するループ
+        #     for ($j = 1; $i + $j -lt $source.length; $j++)
+        #     {
+        #         $line = $source[$i + $j]
         
-                # コメントではないか
-                if ($line -cnotmatch $c__extension[$extension]['line_comment'])
-                {
-                    $line3b = $line
-                    break
-                }
-            }
+        #         # コメントではないか
+        #         if ($line -cnotmatch $c__extension[$extension]['line_comment'])
+        #         {
+        #             $line3b = $line
+        #             break
+        #         }
+        #     }
 
-            return (($line3b -ne '') -and ($line3b -cmatch '[,:\]\}]$'))
-        }
+        #     return $line3b -cmatch '[,:\]\}]$'
+        # }
+        # 除外条件判定
         3
         {
             $rtn =  $line1 -cmatch $item
@@ -579,20 +610,21 @@ for ($i = 1; $i -lt $source.length - 1; $i++)
         }
     }
 
-    # 1行目が除外条件にマッチしていたか
+    # 前行が除外条件にマッチしていたか
     if ($ignore)
     {
         continue
     }
 
-    # 言語依存処理振り分け関数
-    $rtn = for_extension(2)
+    # 現時点では効果が低いため実装しない
+    # # 言語依存処理振り分け関数
+    # $rtn = for_extension(2)
 
-    # 後処理不要か
-    if ($rtn)
-    {
-        continue
-    }
+    # # 後処理不要か
+    # if ($rtn)
+    # {
+    #     continue
+    # }
     
     $c__extension[$extension]['add'] -f $trace_id | Out-File ($source_path) -Append -Encoding $c__extension[$extension]['char_code_page']
 
