@@ -1,5 +1,4 @@
-﻿
-D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & where pwsh
+﻿D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & where pwsh
 続行するには何かキーを押してください . . .
 D:\TOOL\PowerShell-7.0.6-win-x64\pwsh.exe
 
@@ -10,13 +9,13 @@ D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir
 
  D:\TOOL\C1Tester-main\C1Tester\C1TesterCore のディレクトリ
 
-2021/07/06  19:31    <DIR>          .
-2021/07/06  19:31    <DIR>          ..
-2021/07/06  19:28             1,901 C1TesterCore.pssproj
-2021/07/06  19:46            17,026 c1tester_add_trace.ps1
-2021/07/06  19:31    <DIR>          ObjectCode
-               2 個のファイル              18,927 バイト
-               3 個のディレクトリ  152,122,855,424 バイトの空き領域
+2021/12/21  20:46    <DIR>          .
+2021/12/21  20:46    <DIR>          ..
+2021/12/21  20:46             1,901 C1TesterCore.pssproj
+2021/12/21  20:46            19,633 c1tester_add_trace.ps1
+2021/12/21  20:46    <DIR>          ObjectCode
+               2 個のファイル              21,534 バイト
+               3 個のディレクトリ  195,850,051,584 バイトの空き領域
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\PowerShell
 続行するには何かキーを押してください . . .
@@ -25,11 +24,12 @@ D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\PowerShe
 
  D:\TOOL\C1Tester-main\example\PowerShell のディレクトリ
 
-2021/07/06  19:48    <DIR>          .
-2021/07/06  19:48    <DIR>          ..
-2021/07/06  19:28               737 example.ps1
-               1 個のファイル                 737 バイト
-               2 個のディレクトリ  152,122,265,600 バイトの空き領域
+2021/12/21  20:46    <DIR>          .
+2021/12/21  20:46    <DIR>          ..
+2021/12/21  20:46               737 example.ps1
+2021/12/21  20:46            12,773 log.txt
+               2 個のファイル              13,510 バイト
+               2 個のディレクトリ  195,848,085,504 バイトの空き領域
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\example.ps1
 続行するには何かキーを押してください . . .
@@ -100,13 +100,14 @@ D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\PowerShe
 
  D:\TOOL\C1Tester-main\example\PowerShell のディレクトリ
 
-2021/07/06  19:52    <DIR>          .
-2021/07/06  19:52    <DIR>          ..
-2021/07/06  19:52               137 c1tester_example.ps1_report.csv
-2021/07/06  19:52             4,377 example.ps1
-2021/07/06  19:28               737 _example.ps1
-               3 個のファイル               5,251 バイト
-               2 個のディレクトリ  152,120,029,184 バイトの空き領域
+2021/12/21  21:57    <DIR>          .
+2021/12/21  21:57    <DIR>          ..
+2021/12/21  21:57               274 c1tester_example.ps1_report.csv
+2021/12/21  21:57             4,767 example.ps1
+2021/12/21  20:46            12,773 log.txt
+2021/12/21  20:46               737 _example.ps1
+               4 個のファイル              18,551 バイト
+               2 個のディレクトリ  195,837,263,872 バイトの空き領域
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\example.ps1
 続行するには何かキーを押してください . . .
@@ -182,8 +183,15 @@ class c1tester
         {
             $tmp = Get-PSCallStack
             $filename = Split-Path $tmp[1].ScriptName -Leaf
-            $content = $filename + ":" + $tmp[1].ScriptLineNumber + "(" + $tmp[1].FunctionName + ") " + (Get-Date -Format 'yyyy/MM/dd HH:mm:ss')
-            $trace_id + "," + $content | Out-File ($this.h_pass_file) -Append -Encoding utf8
+            $datetime = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
+            $content =
+            @(
+                $filename,
+                $tmp[1].ScriptLineNumber,
+                $tmp[1].FunctionName,
+                $datetime
+            )
+            $trace_id + "," + ($content -join ',') | Out-File ($this.h_pass_file) -Append -Encoding utf8
             $this.h_pass[$trace_id] = $true
 
             # 蝣ｱ蜻翫☆繧九°
@@ -198,8 +206,11 @@ class c1tester
                     if ($this.h_csv[$index].report -eq '-')
                     {
                         $this.h_csv[$index].report = 'P'
-                        $this.h_csv[$index].timestamp = $content
-                        $this.h_csv | Select-Object -Property trace_id,report,timestamp | Export-Csv -Path $this.h_report_file -Encoding utf8 -NoTypeInformation
+                        $this.h_csv[$index].filename = $content[0]
+                        $this.h_csv[$index].line_number = $content[1]
+                        $this.h_csv[$index].function_name = $content[2]
+                        $this.h_csv[$index].timestamp = $content[3]
+                        $this.h_csv | Select-Object -Property trace_id,report,filename,line_number,function_name,timestamp | Export-Csv -UseQuotes Always -Path $this.h_report_file -Encoding utf8 -NoTypeInformation
                     }
                 }
             }
@@ -260,15 +271,15 @@ f1([int]$args[0])
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\c1tester_example.ps1_report.csv
 続行するには何かキーを押してください . . .
-"trace_id","report","timestamp"
-"1","-","-"
-"2","-","-"
-"3","-","-"
-"4","-","-"
-"5","-","-"
-"6","-","-"
-"7","-","-"
-"8","-","-"
+"trace_id","report","filename","line_number","function_name","timestamp"
+"1","-","-","-","-","-"
+"2","-","-","-","-","-"
+"3","-","-","-","-","-"
+"4","-","-","-","-","-"
+"5","-","-","-","-","-"
+"6","-","-","-","-","-"
+"7","-","-","-","-","-"
+"8","-","-","-","-","-"
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & pwsh ..\..\example\PowerShell\example.ps1 5
 続行するには何かキーを押してください . . .
@@ -288,37 +299,38 @@ D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\PowerShe
 
  D:\TOOL\C1Tester-main\example\PowerShell のディレクトリ
 
-2021/07/06  19:52    <DIR>          .
-2021/07/06  19:52    <DIR>          ..
-2021/07/06  19:52               301 c1tester_example.ps1_pass.csv
-2021/07/06  19:52               403 c1tester_example.ps1_report.csv
-2021/07/06  19:52             4,377 example.ps1
-2021/07/06  19:52               137 _c1tester_example.ps1_report.csv
-2021/07/06  19:28               737 _example.ps1
-               5 個のファイル               5,955 バイト
-               2 個のディレクトリ  152,118,063,104 バイトの空き領域
+2021/12/21  21:58    <DIR>          .
+2021/12/21  21:58    <DIR>          ..
+2021/12/21  21:58               294 c1tester_example.ps1_pass.csv
+2021/12/21  21:58               491 c1tester_example.ps1_report.csv
+2021/12/21  21:57             4,767 example.ps1
+2021/12/21  20:46            12,773 log.txt
+2021/12/21  21:57               274 _c1tester_example.ps1_report.csv
+2021/12/21  20:46               737 _example.ps1
+               6 個のファイル              19,336 バイト
+               2 個のディレクトリ  195,826,053,120 バイトの空き領域
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\c1tester_example.ps1_pass.csv
 続行するには何かキーを押してください . . .
-1,example.ps1:102(f1) 2021/07/06 19:52:53
-2,example.ps1:105(f1) 2021/07/06 19:52:53
-3,example.ps1:108(f1) 2021/07/06 19:52:53
-7,example.ps1:133(f1) 2021/07/06 19:52:53
-4,example.ps1:113(f1) 2021/07/06 19:52:53
-5,example.ps1:121(f1) 2021/07/06 19:52:53
-6,example.ps1:127(f1) 2021/07/06 19:52:53
+1,example.ps1,112,f1,2021/12/21 21:58:42
+2,example.ps1,115,f1,2021/12/21 21:58:42
+3,example.ps1,118,f1,2021/12/21 21:58:42
+7,example.ps1,143,f1,2021/12/21 21:58:42
+4,example.ps1,123,f1,2021/12/21 21:58:42
+5,example.ps1,131,f1,2021/12/21 21:58:42
+6,example.ps1,137,f1,2021/12/21 21:58:42
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\c1tester_example.ps1_report.csv
 続行するには何かキーを押してください . . .
-"trace_id","report","timestamp"
-"1","P","example.ps1:102(f1) 2021/07/06 19:52:53"
-"2","P","example.ps1:105(f1) 2021/07/06 19:52:53"
-"3","P","example.ps1:108(f1) 2021/07/06 19:52:53"
-"4","P","example.ps1:113(f1) 2021/07/06 19:52:53"
-"5","P","example.ps1:121(f1) 2021/07/06 19:52:53"
-"6","P","example.ps1:127(f1) 2021/07/06 19:52:53"
-"7","P","example.ps1:133(f1) 2021/07/06 19:52:53"
-"8","-","-"
+"trace_id","report","filename","line_number","function_name","timestamp"
+"1","P","example.ps1","112","f1","2021/12/21 21:58:42"
+"2","P","example.ps1","115","f1","2021/12/21 21:58:42"
+"3","P","example.ps1","118","f1","2021/12/21 21:58:42"
+"4","P","example.ps1","123","f1","2021/12/21 21:58:42"
+"5","P","example.ps1","131","f1","2021/12/21 21:58:42"
+"6","P","example.ps1","137","f1","2021/12/21 21:58:42"
+"7","P","example.ps1","143","f1","2021/12/21 21:58:42"
+"8","-","-","-","-","-"
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & pwsh ..\..\example\PowerShell\example.ps1 6
 続行するには何かキーを押してください . . .
@@ -331,30 +343,31 @@ D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & dir ..\..\example\PowerShe
 
  D:\TOOL\C1Tester-main\example\PowerShell のディレクトリ
 
-2021/07/06  19:53    <DIR>          .
-2021/07/06  19:53    <DIR>          ..
-2021/07/06  19:53                54 c1tester_example.ps1_pass.csv
-2021/07/06  19:53               452 c1tester_example.ps1_report.csv
-2021/07/06  19:52             4,377 example.ps1
-2021/07/06  19:52               403 _c1tester_example.ps1_report.csv
-2021/07/06  19:28               737 _example.ps1
-               5 個のファイル               6,023 バイト
-               2 個のディレクトリ  152,116,162,560 バイトの空き領域
+2021/12/21  21:59    <DIR>          .
+2021/12/21  21:59    <DIR>          ..
+2021/12/21  21:59                53 c1tester_example.ps1_pass.csv
+2021/12/21  21:59               533 c1tester_example.ps1_report.csv
+2021/12/21  21:57             4,767 example.ps1
+2021/12/21  20:46            12,773 log.txt
+2021/12/21  21:58               491 _c1tester_example.ps1_report.csv
+2021/12/21  20:46               737 _example.ps1
+               6 個のファイル              19,354 バイト
+               2 個のディレクトリ  195,815,960,576 バイトの空き領域
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\c1tester_example.ps1_pass.csv
 続行するには何かキーを押してください . . .
-8,example.ps1:142(<ScriptBlock>) 2021/07/06 19:53:01
+8,example.ps1,152,<ScriptBlock>,2021/12/21 21:59:22
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>pause   & type ..\..\example\PowerShell\c1tester_example.ps1_report.csv
 続行するには何かキーを押してください . . .
-"trace_id","report","timestamp"
-"1","P","example.ps1:102(f1) 2021/07/06 19:52:53"
-"2","P","example.ps1:105(f1) 2021/07/06 19:52:53"
-"3","P","example.ps1:108(f1) 2021/07/06 19:52:53"
-"4","P","example.ps1:113(f1) 2021/07/06 19:52:53"
-"5","P","example.ps1:121(f1) 2021/07/06 19:52:53"
-"6","P","example.ps1:127(f1) 2021/07/06 19:52:53"
-"7","P","example.ps1:133(f1) 2021/07/06 19:52:53"
-"8","P","example.ps1:142(<ScriptBlock>) 2021/07/06 19:53:01"
+"trace_id","report","filename","line_number","function_name","timestamp"
+"1","P","example.ps1","112","f1","2021/12/21 21:58:42"
+"2","P","example.ps1","115","f1","2021/12/21 21:58:42"
+"3","P","example.ps1","118","f1","2021/12/21 21:58:42"
+"4","P","example.ps1","123","f1","2021/12/21 21:58:42"
+"5","P","example.ps1","131","f1","2021/12/21 21:58:42"
+"6","P","example.ps1","137","f1","2021/12/21 21:58:42"
+"7","P","example.ps1","143","f1","2021/12/21 21:58:42"
+"8","P","example.ps1","152","<ScriptBlock>","2021/12/21 21:59:22"
 
 D:\TOOL\C1Tester-main\C1Tester\C1TesterCore>
