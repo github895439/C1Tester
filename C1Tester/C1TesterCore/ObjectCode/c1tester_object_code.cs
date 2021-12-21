@@ -10,7 +10,7 @@
         private Dictionary<string, Dictionary<string, string>> m_Csv = new Dictionary<string, Dictionary<string, string>>();
         private string m_CsvHeader;
 
-        private void ParseCsv(string content)
+        private void ParseCsv(string[] content)
         {
             string[] tmp;
             Dictionary<string, string> tmp2;
@@ -70,7 +70,7 @@
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0)
         {
             string[] content;
-            string[] line;
+            string line;
 
             //トレースが無効か
             if (!m_EnabledTrace)
@@ -82,18 +82,18 @@
             if (!m_Pass.Keys.Contains(traceId))
             {
                 content = new string[]
-                (
+                {
                     Path.GetFileName(sourceFilePath),
-                    sourceLineNumber,
+                    sourceLineNumber.ToString(),
                     memberName,
                     DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")
-                );
+                };
 #if NET
                 File.AppendAllTextAsync(m_PassFile, tmp);
 #else
                 lock (m_PassFile)
                 {
-                    File.AppendAllText(m_PassFile, traceId + "," + String.Join(',', content) + Environment.NewLine);
+                    File.AppendAllText(m_PassFile, traceId + "," + String.Join(",", content) + Environment.NewLine);
                 }
 #endif
                 m_Pass[traceId] = true;
@@ -121,12 +121,12 @@
                             //CSV書き込みループ
                             foreach (string item in m_Csv.Keys)
                             {
-                                line = "\"" + item + "\",\"";
+                                line = "\"" + item + "\"";
 
                                 //ダブルクォート追加ループ
                                 foreach (string item2 in m_Csv[item].Keys)
                                 {
-                                    line += ",\"" + m_Csv[item][item2] + "\",\"";
+                                    line += ",\"" + m_Csv[item][item2] + "\"";
                                 }
 
                                 File.AppendAllText(m_ReportFile, line + Environment.NewLine);

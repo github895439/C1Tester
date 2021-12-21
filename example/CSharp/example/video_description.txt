@@ -1,6 +1,9 @@
 https://www.twitch.tv/videos/1081344873
 
 1 Visual Studio(以降、VS)でexampleソリューションを開く
+　ボタンとテキストボックスを設置し、ボタンのハンドラを作成する。
+　終わったらデザイナーを閉じる。
+　(C1Testerでソースを直接変更すると、一時的にVSが対応していない形式になり、デザイナーがエラーとなるため。)
 2 [VS]デバッグ実行する
 3 [exampleウィンドウ]ボタンを押す(exampleの動作表示)
 4 Visual Studio Code(以降、VSC)を開く
