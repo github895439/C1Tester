@@ -1,2 +1,20 @@
-1 ブラウザでMap ViewerフォルダのMapViewer.htmlを開く
-2 ★動作
+1 ブラウザでMapViewer.htmlを開く
+　動作を表示する。
+2 [ブラウザ]「ビューオープン」ボタンを押す
+3 [ブラウザ]「設定ロード」ボタンを押す
+* 対Javascriptの要領でMapViewer.jsにトレースを追加する
+　「-not_node」オプションを追加してPowerShellスクリプトを実行する。
+4 Visual Studio Code(以降、VSC)を開く
+* [VSC]Javascript_not_nodeフォルダを開く
+* [VSC]通過情報出力先をHTMLに追加する
+　idが「c1TesterPass」のtextarea。
+　例
+　<textarea id="c1TesterPass" cols="32" rows="40" wrap="off"></textarea>
+* [VSC]報告情報出力先をHTMLに追加する
+　idが「c1TesterReport」のtextarea。
+　例
+　<textarea id="c1TesterReport" cols="32" rows="40" wrap="off"></textarea>
+* [VSC]報告ファイルの内容を報告情報出力先に追加する
+* [ブラウザ]ページをリロードする
+2 [ブラウザ]「ビューオープン」ボタンを押す
+3 [ブラウザ]「設定ロード」ボタンを押す
