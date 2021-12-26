@@ -1,4 +1,4 @@
-https://www.twitch.tv/videos/1081344873
+https://www.twitch.tv/videos/1243995204
 
 1 Visual Studio(以降、VS)でexampleソリューションを開く
 　ボタンとテキストボックスを設置し、ボタンのハンドラを作成する。
